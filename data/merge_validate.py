@@ -70,6 +70,7 @@ with open(OUT, "w", newline="", encoding="utf-8") as f:
             "sale_price_thb", "promo", "source_image", "needs_review",
             "source_file",
         ],
+        lineterminator="\n",
     )
     w.writeheader()
     w.writerows(rows)
