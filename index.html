@@ -6,6 +6,7 @@
 <title>LEGO ราคาลด 24–27/9/26</title>
 <link rel="icon" href="data:,">
 <link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/lightbox.css">
 </head>
 <body>
 <div class="wrap">
@@ -70,6 +71,18 @@
     <a href="https://github.com/vavar/lego-sale-price" target="_blank" rel="noopener">github.com/vavar/lego-sale-price</a>
   </footer>
 </div>
+<div id="lb" class="hidden">
+  <button class="lb-close" title="ปิด (Esc)">✕</button>
+  <div class="lb-stage">
+    <button class="lb-prev" title="ก่อนหน้า (←)">‹</button>
+    <img class="lb-img" alt="set image">
+    <button class="lb-next" title="ถัดไป (→)">›</button>
+    <div class="lb-hint">pinch เพื่อซูม · แตะ 2 ครั้งเพื่อซูม · ปัดซ้าย/ขวาเพื่อดูเซ็ตอื่น</div>
+    <div class="lb-counter"></div>
+    <div class="lb-caption"></div>
+  </div>
+</div>
+<script src="assets/lightbox.js"></script>
 <script src="assets/app.js"></script>
 </body>
 </html>

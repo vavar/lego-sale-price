@@ -36,6 +36,8 @@ const chipBtns = ['all', 'pct', 'b1g1', 'b2f1', 'full'].map(c => {
 let fetchText;
 global.fetch = () => Promise.resolve({ ok: true, text: () => Promise.resolve(fetchText) });
 
+global.window = global; // app.js checks window.__lb (lightbox not loaded here)
+
 global.document = {
   getElementById: (id) => elems[id],
   querySelectorAll: (sel) => sel === '#chips button' ? chipBtns : [],
@@ -75,7 +77,8 @@ eval(src);
   assert.ok(/875/.test(stats), 'stats should mention 875');
   console.log('stats:', stats);
   assert.ok(/<td class="item">/.test(created[0]._html), 'row has item td');
-  assert.ok(/data-src="https:\/\/cdn\.rebrickable\.com\/media\/sets\/[^"]+-1\.jpg"/.test(created[0]._html), 'row has lazy Rebrickable image');
+  assert.ok(/data-src="img\/[^"]+\.jpg"/.test(created[0]._html), 'row uses local repo image');
+  assert.ok(/data-hires="https:\/\/cdn\.rebrickable\.com\/media\/sets\/[^"]+-1\.jpg"/.test(created[0]._html), 'row keeps hi-res CDN url');
   assert.ok(/href="https:\/\/www\.lego\.com\/en-th\/search\?q=[^"]+"/.test(created[0]._html), 'row links to LEGO.com search');
   assert.ok(/<button class="copy" data-item="[^"]+"/.test(created[0]._html), 'row has copy button');
   assert.ok(elems['tbl'].classList.contains('hidden') === false, 'table unhidden');

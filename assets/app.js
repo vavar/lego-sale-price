@@ -74,11 +74,14 @@
       ? Number(r.price_thb) - Number(r.sale_price_thb) : null;
     var desc = highlight(r.description) + promoBadge +
       (r.needs_review === '1' ? ' <span class="badge warn">⚠ ตรวจสอบ</span>' : '');
-    var imgUrl = 'https://cdn.rebrickable.com/media/sets/' + encodeURIComponent(r.item) + '-1.jpg';
+    var imgUrl = 'img/' + encodeURIComponent(r.item) + '.jpg';
+    var hiRes = 'https://cdn.rebrickable.com/media/sets/' + encodeURIComponent(r.item) + '-1.jpg';
+    r._img = imgUrl;
+    r._hires = hiRes;
     var legoUrl = 'https://www.lego.com/en-th/search?q=' + encodeURIComponent(r.item);
     tr.innerHTML =
-      '<td class="imgcell"><a href="' + imgUrl + '" target="_blank" rel="noopener" title="ดูรูปเต็ม">' +
-      '<img data-src="' + imgUrl + '" alt="' + esc(r.item) + '" loading="lazy"></a></td>' +
+      '<td class="imgcell"><img data-src="' + imgUrl + '" data-item="' + esc(r.item) +
+      '" data-hires="' + hiRes + '" alt="' + esc(r.item) + '" loading="lazy" title="แตะเพื่อดูรูปใหญ่"></td>' +
       '<td class="item"><a class="itemlink" href="' + legoUrl + '" target="_blank" rel="noopener" ' +
       'title="เปิด LEGO.com ค้นหา ' + esc(r.item) + '">' + highlight(r.item) + '</a>' +
       '<button class="copy" data-item="' + esc(r.item) + '" title="คัดลอกรหัสเซ็ต">📋</button></td>' +
@@ -149,6 +152,7 @@
     list.forEach(function (r) { frag.appendChild(buildRow(r)); });
     tbody.appendChild(frag);
     lazyImages();
+    if (window.__lb) window.__lb.list = list; // lightbox navigation follows current filter/sort
 
     var pctCount = rows.filter(function (r) { return !!r.discount_pct; }).length;
     var promoCount = rows.filter(function (r) { return promoOf(r); }).length;
