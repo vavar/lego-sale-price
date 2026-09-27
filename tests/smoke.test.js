@@ -26,6 +26,7 @@ function el(id) {
 const ids = ['q', 'minDisc', 'sort', 'onlyReview', 'stats', 'error', 'tbody', 'tbl'];
 const elems = Object.fromEntries(ids.map(i => [i, el(i)]));
 elems['tbody'].appendChild = () => {}; // real DOM has it; rows already captured via fragment
+elems['tbody'].querySelectorAll = () => []; // lazyImages() target; no real imgs in stub
 const chipBtns = ['all', 'pct', 'b1g1', 'b2f1', 'full'].map(c => {
   const b = el('chip-' + c);
   b.getAttribute = () => c;
@@ -74,6 +75,7 @@ eval(src);
   assert.ok(/875/.test(stats), 'stats should mention 875');
   console.log('stats:', stats);
   assert.ok(/<td class="item">/.test(created[0]._html), 'row has item td');
+  assert.ok(/data-src="https:\/\/cdn\.rebrickable\.com\/media\/sets\/[^"]+-1\.jpg"/.test(created[0]._html), 'row has lazy Rebrickable image');
   assert.ok(elems['tbl'].classList.contains('hidden') === false, 'table unhidden');
 
   // --- search ---

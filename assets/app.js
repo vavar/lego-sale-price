@@ -74,7 +74,10 @@
       ? Number(r.price_thb) - Number(r.sale_price_thb) : null;
     var desc = highlight(r.description) + promoBadge +
       (r.needs_review === '1' ? ' <span class="badge warn">⚠ ตรวจสอบ</span>' : '');
+    var imgUrl = 'https://cdn.rebrickable.com/media/sets/' + encodeURIComponent(r.item) + '-1.jpg';
     tr.innerHTML =
+      '<td class="imgcell"><a href="' + imgUrl + '" target="_blank" rel="noopener" title="ดูรูปเต็ม">' +
+      '<img data-src="' + imgUrl + '" alt="' + esc(r.item) + '" loading="lazy"></a></td>' +
       '<td class="item">' + highlight(r.item) + '</td>' +
       '<td class="desc">' + desc + '</td>' +
       '<td class="num">' + fmt(r.price_thb) + '</td>' +
@@ -82,6 +85,28 @@
       '<td class="num sale">' + fmt(r.sale_price_thb) + '</td>' +
       '<td class="num save">' + (save ? fmt(save) : '—') + '</td>';
     return tr;
+  }
+
+  var io = null;
+  function lazyImages() {
+    var imgs = $('tbody').querySelectorAll('img[data-src]');
+    if (typeof IntersectionObserver === 'undefined') {
+      // fallback (tests / very old browsers): load everything
+      imgs.forEach(function (im) { im.src = im.getAttribute('data-src'); });
+      return;
+    }
+    if (!io) {
+      io = new IntersectionObserver(function (entries) {
+        entries.forEach(function (en) {
+          if (en.isIntersecting) {
+            en.target.src = en.target.getAttribute('data-src');
+            en.target.removeAttribute('data-src');
+            io.unobserve(en.target);
+          }
+        });
+      }, { rootMargin: '300px' });
+    }
+    imgs.forEach(function (im) { io.observe(im); });
   }
 
   function apply() {
@@ -120,6 +145,7 @@
     var frag = document.createDocumentFragment();
     list.forEach(function (r) { frag.appendChild(buildRow(r)); });
     tbody.appendChild(frag);
+    lazyImages();
 
     var pctCount = rows.filter(function (r) { return !!r.discount_pct; }).length;
     var promoCount = rows.filter(function (r) { return promoOf(r); }).length;

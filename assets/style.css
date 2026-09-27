@@ -52,6 +52,12 @@ td.sale, .num.sale { color: var(--accent); font-weight: 700; }
 td.save { color: var(--green); }
 td.item { white-space: nowrap; font-weight: 600; }
 td.desc { min-width: 220px; }
+td.imgcell { width: 56px; }
+td.imgcell img {
+  width: 56px; height: 56px; object-fit: contain; border-radius: 6px;
+  background: #fff; border: 1px solid var(--line); display: block;
+}
+td.imgcell a { display: block; }
 .badge {
   display: inline-block; background: #2c2c3a; border: 1px solid var(--line);
   border-radius: 6px; padding: 0 6px; font-size: .74rem; margin-left: 6px; white-space: nowrap;
