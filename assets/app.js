@@ -75,10 +75,13 @@
     var desc = highlight(r.description) + promoBadge +
       (r.needs_review === '1' ? ' <span class="badge warn">⚠ ตรวจสอบ</span>' : '');
     var imgUrl = 'https://cdn.rebrickable.com/media/sets/' + encodeURIComponent(r.item) + '-1.jpg';
+    var legoUrl = 'https://www.lego.com/en-th/search?q=' + encodeURIComponent(r.item);
     tr.innerHTML =
       '<td class="imgcell"><a href="' + imgUrl + '" target="_blank" rel="noopener" title="ดูรูปเต็ม">' +
       '<img data-src="' + imgUrl + '" alt="' + esc(r.item) + '" loading="lazy"></a></td>' +
-      '<td class="item">' + highlight(r.item) + '</td>' +
+      '<td class="item"><a class="itemlink" href="' + legoUrl + '" target="_blank" rel="noopener" ' +
+      'title="เปิด LEGO.com ค้นหา ' + esc(r.item) + '">' + highlight(r.item) + '</a>' +
+      '<button class="copy" data-item="' + esc(r.item) + '" title="คัดลอกรหัสเซ็ต">📋</button></td>' +
       '<td class="desc">' + desc + '</td>' +
       '<td class="num">' + fmt(r.price_thb) + '</td>' +
       '<td class="disc">' + disc + '</td>' +
@@ -158,6 +161,18 @@
     $('stats').textContent = stats;
   }
 
+  function fallbackCopy(text) {
+    try {
+      var ta = document.createElement('textarea');
+      ta.value = text;
+      document.body.appendChild(ta);
+      ta.select();
+      var ok = document.execCommand('copy');
+      document.body.removeChild(ta);
+      return ok;
+    } catch (e) { return false; }
+  }
+
   function init() {
     var chips = document.querySelectorAll('#chips button');
     chips.forEach(function (btn) {
@@ -176,6 +191,22 @@
     });
     ['minDisc', 'sort', 'onlyReview'].forEach(function (id) {
       $(id).addEventListener('change', apply);
+    });
+
+    // copy-set-number buttons (event delegation: table re-renders on every filter)
+    $('tbody').addEventListener('click', function (ev) {
+      var btn = ev.target.closest ? ev.target.closest('button.copy') : null;
+      if (!btn) return;
+      var item = btn.getAttribute('data-item');
+      var done = function (ok) {
+        btn.textContent = ok ? '✅' : '❌';
+        setTimeout(function () { btn.textContent = '📋'; }, 1200);
+      };
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(item).then(function () { done(true); }, function () { done(fallbackCopy(item)); });
+      } else {
+        done(fallbackCopy(item));
+      }
     });
 
     fetch(CSV_PATH)

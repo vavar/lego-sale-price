@@ -76,6 +76,8 @@ eval(src);
   console.log('stats:', stats);
   assert.ok(/<td class="item">/.test(created[0]._html), 'row has item td');
   assert.ok(/data-src="https:\/\/cdn\.rebrickable\.com\/media\/sets\/[^"]+-1\.jpg"/.test(created[0]._html), 'row has lazy Rebrickable image');
+  assert.ok(/href="https:\/\/www\.lego\.com\/en-th\/search\?q=[^"]+"/.test(created[0]._html), 'row links to LEGO.com search');
+  assert.ok(/<button class="copy" data-item="[^"]+"/.test(created[0]._html), 'row has copy button');
   assert.ok(elems['tbl'].classList.contains('hidden') === false, 'table unhidden');
 
   // --- search ---
@@ -114,7 +116,7 @@ eval(src);
   elems['sort'].value = 'disc-desc';
   elems['sort'].listeners.change.forEach(f => f());
   assert.ok(/70%/.test(created[0]._html), 'top row should be 70%');
-  console.log('top by disc-desc:', created[0]._html.match(/<td class="item">([^<]+)/)[1]);
+  console.log('top by disc-desc:', created[0]._html.match(/<td class="item"><a class="itemlink"[^>]*>([^<]+)/)[1]);
   elems['sort'].value = 'item';
   elems['sort'].listeners.change.forEach(f => f());
 

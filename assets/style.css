@@ -51,6 +51,13 @@ td.num { text-align: right; font-variant-numeric: tabular-nums; white-space: now
 td.sale, .num.sale { color: var(--accent); font-weight: 700; }
 td.save { color: var(--green); }
 td.item { white-space: nowrap; font-weight: 600; }
+td.item .itemlink { color: var(--text); text-decoration: none; border-bottom: 1px dotted var(--muted); }
+td.item .itemlink:hover { color: var(--accent); border-bottom-color: var(--accent); }
+button.copy {
+  background: none; border: none; cursor: pointer; font-size: .85rem;
+  padding: 0 2px; vertical-align: middle; opacity: .55;
+}
+button.copy:hover { opacity: 1; transform: scale(1.15); }
 td.desc { min-width: 220px; }
 td.imgcell { width: 56px; }
 td.imgcell img {
