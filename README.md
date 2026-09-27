@@ -47,3 +47,21 @@ prices are the reliable fields.
 ## Extracted by
 
 Hermes Agent on vavario (vision extraction from photos), 27 Sep 2026.
+
+## LEGO.com image sync
+
+Set images are stored in `img/` (480px JPEGs, from the Rebrickable CDN).
+Three sets have no image available anywhere (`10310`, `10318`, `31395`) and
+use generated placeholders.
+
+[`sync.html`](https://vavar.github.io/lego-sale-price/sync.html) is a helper
+page (runs in *your* browser, since lego.com blocks datacenter IPs) that
+extracts official LEGO.com image URLs and produces `lego-images.json`:
+
+1. pick scope (only-missing / all / custom list)
+2. try direct LEGO Search API fetch, or copy the generated console snippet
+   and run it on any lego.com page (result lands in your clipboard)
+3. paste the JSON back → download `lego-images.json` → send it back to be
+   merged into `img/`
+
+Re-run `scripts/fetch_images.py` to refresh; it only downloads what's missing.

@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ดึงรูปจาก LEGO.com → JSON | lego-sale-price</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="assets/style.css">
+<style>
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 16px; margin-bottom: 14px; }
+  .card h2 { font-size: 1.05rem; margin: 0 0 8px; }
+  .card p { color: var(--muted); font-size: .9rem; margin: 4px 0; }
+  ol.steps { color: var(--text); font-size: .9rem; padding-left: 20px; margin: 8px 0; }
+  ol.steps li { margin: 4px 0; }
+  button.act {
+    background: var(--accent); color: #000; font-weight: 700; border: none;
+    padding: 10px 16px; border-radius: 8px; cursor: pointer; font-size: .95rem;
+  }
+  button.act:disabled { opacity: .45; cursor: not-allowed; }
+  button.ghost {
+    background: var(--bg); color: var(--text); border: 1px solid var(--line);
+    padding: 8px 14px; border-radius: 8px; cursor: pointer; font-size: .9rem;
+  }
+  .scope { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0; }
+  .scope label { color: var(--text); font-size: .9rem; display: flex; align-items: center; gap: 6px; }
+  .progress { height: 10px; background: #26262f; border-radius: 999px; overflow: hidden; margin: 10px 0; }
+  .progress > div { height: 100%; width: 0; background: var(--accent); transition: width .2s; }
+  #log { font-size: .82rem; color: var(--muted); max-height: 180px; overflow-y: auto; white-space: pre-wrap; }
+  textarea#paste {
+    width: 100%; min-height: 110px; background: var(--bg); color: var(--text);
+    border: 1px solid var(--line); border-radius: 8px; padding: 10px; font-family: monospace; font-size: .82rem;
+  }
+  table.results { width: 100%; border-collapse: collapse; font-size: .85rem; margin-top: 8px; }
+  table.results td, table.results th { border-bottom: 1px solid var(--line); padding: 6px 8px; text-align: left; }
+  .ok { color: var(--green); } .miss { color: var(--red); }
+  code.snip {
+    display: block; background: var(--bg); border: 1px solid var(--line); border-radius: 8px;
+    padding: 10px; font-size: .75rem; max-height: 140px; overflow: auto; white-space: pre-wrap; word-break: break-all;
+  }
+  .warnbox { background: #3a3115; border: 1px solid #b39430; color: #ffe9a8; padding: 10px 12px; border-radius: 8px; font-size: .88rem; margin: 8px 0; }
+  .hidden { display: none; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>🧱 ดึงรูปจาก <span class="accent">LEGO.com</span> → ไฟล์ JSON</h1>
+    <p class="sub" id="stats">กำลังโหลดรายการเซ็ต…</p>
+  </header>
+
+  <div class="card">
+    <h2>1 · เลือกขอบเขตเซ็ตที่ต้องการ</h2>
+    <div class="scope">
+      <label><input type="radio" name="scope" value="missing" checked> เฉพาะที่ยังไม่มีรูป (<span id="missCount">…</span> เซ็ต)</label>
+      <label><input type="radio" name="scope" value="all"> ทั้งหมด (<span id="allCount">…</span> เซ็ต)</label>
+      <label><input type="radio" name="scope" value="custom"> ระบุเอง (คั่นด้วยช่องว่าง/คอมมา)</label>
+    </div>
+    <input id="customSets" class="search" style="display:none; font-size:.9rem;"
+           placeholder="เช่น 10310 10318 31395 หรือ 75192, 10305">
+  </div>
+
+  <div class="card">
+    <h2>2 · ดึง URL รูป</h2>
+    <p>เครื่องมือนี้ต้องรันในเบราว์เซอร์ของคุณ (เปิดหน้านี้บนมือถือ/คอมที่บ้าน) เพราะ vavario ถูก lego.com บล็อก — แต่เบราว์เซอร์ของคุณไม่โดนบล็อก</p>
+    <p><button class="act" id="autoBtn">ลองดึงอัตโนมัติจาก LEGO Search API</button></p>
+    <div class="progress hidden" id="pbarWrap"><div id="pbar"></div></div>
+    <div id="log"></div>
+    <div id="corsHint" class="warnbox hidden">
+      ถูกบล็อกโดย CORS (เบราว์เซอร์กันการเรียกข้ามโดเมน) — ใช้ขั้นตอนที่ 3 ด้านล่างแทน
+    </div>
+    <div id="autoResult" class="hidden">
+      <p id="autoSummary"></p>
+      <button class="act" id="dlAuto">⬇ ดาวน์โหลด lego-images.json</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>3 · ถ้าอัตโนมัติไม่ผ่าน: รัน snippet ใน Console บน lego.com</h2>
+    <ol class="steps">
+      <li>เปิด <a href="https://www.lego.com/en-th" target="_blank" rel="noopener">www.lego.com</a> (หน้าไหนก็ได้)</li>
+      <li>กด <b>F12</b> (คอม) หรือใช้เบราว์เซอร์ที่ Inspect ได้ → เปิดแท็บ <b>Console</b></li>
+      <li>กดปุ่มด้านล่างเพื่อคัดลอก snippet → วางใน Console → กด Enter แล้วรอจบ</li>
+      <li>ผลลัพธ์จะอยู่ในคลิปบอร์ดอัตโนมัติ — กลับมาวางในกล่องขั้นที่ 4</li>
+    </ol>
+    <button class="ghost" id="copySnip">📋 คัดลอก snippet</button>
+    <code class="snip" id="snipBox">(เลือกขอบเขตก่อน)</code>
+  </div>
+
+  <div class="card">
+    <h2>4 · วางผลลัพธ์ → ได้ไฟล์ JSON</h2>
+    <p>วาง JSON จากคลิปบอร์ด หรือหยดไฟล์ .json ลงกล่องนี้</p>
+    <textarea id="paste" placeholder='{"10310":"https://www.lego.com/cdn/...","10318":null,...}'></textarea>
+    <p>
+      <button class="act" id="dlPaste" disabled>⬇ ดาวน์โหลด lego-images.json</button>
+      <span id="pasteStatus" class="sub"></span>
+    </p>
+    <div id="pasteResult" class="hidden"><table class="results" id="resTbl"></table></div>
+  </div>
+
+  <footer>
+    ได้ไฟล์แล้วส่ง (แนบ) กลับมาที่ Discord ให้ผมรวมเข้า repo ต่อ ·
+    <a href="index.html">← กลับตารางราคา</a>
+  </footer>
+</div>
+<script src="assets/sync.js"></script>
+</body>
+</html>
