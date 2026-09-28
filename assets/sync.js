@@ -1,18 +1,24 @@
 /* sync.js — LEGO.com image-URL extractor helper.
+   Source: the search page itself (https://www.lego.com/en-us/search?q={set}),
+   extracting the official image URL from the embedded __NEXT_DATA__ JSON.
+
    Runs in the user's browser (their residential IP isn't blocked).
    Two modes:
-   1. Direct fetch to LEGO Search API (may fail due to CORS).
-   2. Generates a console snippet to run on lego.com; result comes back
-      via clipboard -> pasted into the textarea -> downloaded as JSON.
+   1. Direct fetch to the search page (may fail due to CORS).
+   2. Console snippet to run on lego.com (same-origin, always works);
+      result comes back via clipboard -> pasted here -> downloaded as JSON.
+
+   parseForImage()/deepFindImage() are shared verbatim with the snippet
+   (injected via Function.prototype.toString), so tests cover both paths.
 */
 (function () {
   'use strict';
 
   var CSV_PATH = 'data/lego-sale_2026-09-24-27.csv';
-  var ITEMS = [];          // all set numbers
-  var MISSING = [];        // sets with no local image
-  var target = [];         // currently selected scope
-  var results = {};        // item -> url|null
+  var SEARCH_BASE = 'https://www.lego.com/en-us/search?q=';
+  var ITEMS = [];
+  var MISSING = [];
+  var results = {};
 
   var $ = function (id) { return document.getElementById(id); };
   function log(msg) {
@@ -35,13 +41,72 @@
     setTimeout(function () { URL.revokeObjectURL(a.href); }, 2000);
   }
 
-  // ---------- load inventory ----------
+  // ---------- extraction logic (shared with snippet — keep self-contained) ----------
+  function deepFindImage(node, item, depth) {
+    if (depth > 12 || node == null) return null;
+    if (Array.isArray(node)) {
+      for (var i = 0; i < node.length; i++) {
+        var r = deepFindImage(node[i], item, depth + 1);
+        if (r) return r;
+      }
+      return null;
+    }
+    if (typeof node !== 'object') return null;
+    var codeKeys = ['productCode', 'itemNumber', 'setNumber', 'sku', 'productNo'];
+    var has = false;
+    for (var k = 0; k < codeKeys.length; k++) {
+      var v0 = node[codeKeys[k]];
+      if (String(v0 == null ? '' : v0).replace(/^0+/, '') === String(item)) { has = true; break; }
+    }
+    if (has) {
+      for (var key in node) {
+        if (!/image|thumb|picture/i.test(key)) continue;
+        var v = node[key];
+        if (typeof v === 'string' && v.indexOf('lego.com/cdn') !== -1) return v;
+        if (v && typeof v === 'object') {
+          var s = JSON.stringify(v);
+          var m2 = s && s.match(/https:\/\/www\.lego\.com\/cdn\/[^"]+?\.(?:png|jpe?g|webp)/);
+          if (m2) return m2[0];
+        }
+      }
+    }
+    for (var key2 in node) {
+      var r2 = deepFindImage(node[key2], item, depth + 1);
+      if (r2) return r2;
+    }
+    return null;
+  }
+
+  function parseForImage(html, item) {
+    var m = html.match(/<script id="__NEXT_DATA__"[^>]*>([\s\S]*?)<\/script>/);
+    if (m) {
+      try {
+        var u = deepFindImage(JSON.parse(m[1]), item, 0);
+        if (u) return u;
+      } catch (e) { /* fall through */ }
+    }
+    // fallback: nearest CDN image URL after an occurrence of the set number
+    var re = /https:\/\/www\.lego\.com\/cdn\/[^"'\\\s)]+?\.(?:png|jpe?g|webp)/g;
+    var urls = [], mm;
+    while ((mm = re.exec(html)) !== null) urls.push({ i: mm.index, u: mm[0] });
+    if (!urls.length) return null;
+    var pos = html.indexOf('"' + item + '"');
+    if (pos === -1) pos = html.indexOf(item);
+    while (pos !== -1) {
+      for (var k = 0; k < urls.length; k++) {
+        if (urls[k].i > pos && urls[k].i - pos < 3000) return urls[k].u;
+      }
+      pos = html.indexOf(item, pos + 1);
+    }
+    return urls.length === 1 ? urls[0].u : null;
+  }
+
+  // ---------- inventory ----------
   fetch(CSV_PATH)
     .then(function (r) { return r.text(); })
     .then(function (text) {
       var lines = text.replace(/\r/g, '').split('\n').slice(1).filter(Boolean);
       ITEMS = lines.map(function (l) { return l.split(',')[0]; });
-      // missing = no row check done via HEAD on img/ (page host) — do lazily via parallel HEADs
       return Promise.all(ITEMS.map(function (item) {
         return fetch('img/' + encodeURIComponent(item) + '.jpg', { method: 'HEAD' })
           .then(function (r) { return r.ok ? null : item; })
@@ -63,8 +128,7 @@
     var v = document.querySelector('input[name="scope"]:checked').value;
     if (v === 'missing') return MISSING;
     if (v === 'all') return ITEMS;
-    var custom = ($('customSets').value || '').split(/[\s,]+/).filter(Boolean);
-    return custom;
+    return ($('customSets').value || '').split(/[\s,]+/).filter(Boolean);
   }
 
   document.querySelectorAll('input[name="scope"]').forEach(function (r) {
@@ -75,34 +139,19 @@
   });
   $('customSets').addEventListener('input', buildSnippet);
 
-  // ---------- mode 1: direct fetch ----------
-  function apiProbe(item) {
-    var url = 'https://searchapi.lego.com/api/search?text=' + encodeURIComponent(item) +
-      '&country=TH&locale=en-TH';
-    return fetch(url, { headers: { Accept: 'application/json' } })
+  // ---------- mode 1: direct fetch from this page (cross-origin; best effort) ----------
+  function pageProbe(item) {
+    return fetch(SEARCH_BASE + encodeURIComponent(item), { headers: { Accept: 'text/html' } })
       .then(function (r) {
         if (!r.ok) throw new Error('HTTP ' + r.status);
-        return r.json();
+        return r.text();
       })
-      .then(function (data) {
-        // try common shapes
-        var hits = (data && (data.results || data.products || data.items)) || [];
-        var found = null;
-        for (var i = 0; i < hits.length; i++) {
-          var h = hits[i];
-          var code = String(h.productCode || h.itemNumber || h.id || '').replace(/^0+/, '');
-          if (code === String(item)) {
-            found = h.imageUrl || h.image || h.thumbnailUrl || (h.images && h.images[0]) || null;
-            break;
-          }
-        }
-        return found;
-      })
+      .then(function (html) { return parseForImage(html, item); })
       .catch(function () { return 'CORS'; });
   }
 
   $('autoBtn').addEventListener('click', function () {
-    target = currentScope();
+    var target = currentScope();
     if (!target.length) { alert('ยังไม่มีรายการเซ็ตในขอบเขตที่เลือก'); return; }
     results = {};
     var btn = this;
@@ -111,16 +160,16 @@
     $('corsHint').classList.add('hidden');
     $('autoResult').classList.add('hidden');
     $('log').textContent = '';
-    log('เริ่มดึง ' + target.length + ' เซ็ตผ่าน LEGO Search API…');
+    log('เริ่มดึงหน้า search ของ lego.com จำนวน ' + target.length + ' เซ็ต…');
 
     var done = 0, blocked = false;
     var queue = target.slice();
-    var CONC = 4;
+    var CONC = 3;
 
     function next() {
-      if (!queue.length) return Promise.resolve();
+      if (!queue.length || blocked) return Promise.resolve();
       var item = queue.shift();
-      return apiProbe(item).then(function (url) {
+      return pageProbe(item).then(function (url) {
         done++;
         if (url === 'CORS') blocked = true;
         else {
@@ -128,7 +177,6 @@
           if (url) log('✔ ' + item);
         }
         $('pbar').style.width = Math.round(done / target.length * 100) + '%';
-        if (blocked) return Promise.resolve(); // stop hammering once blocked
         return next();
       });
     }
@@ -137,7 +185,7 @@
     Promise.all(workers).then(function () {
       btn.disabled = false;
       if (blocked) {
-        log('ถูกบล็อก (CORS/403) — สลับไปใช้ snippet ขั้นที่ 3');
+        log('ถูกบล็อก (CORS) — เบราว์เซอร์อ่านหน้า lego.com ข้ามโดเมนไม่ได้ ใช้ snippet ขั้นที่ 3 (รันบน lego.com เอง เดินแน่นอน)');
         $('corsHint').classList.remove('hidden');
       } else {
         var found = Object.values(results).filter(Boolean).length;
@@ -149,29 +197,27 @@
     });
   });
 
-  // ---------- mode 2: console snippet ----------
+  // ---------- mode 2: console snippet (same-origin on lego.com) ----------
   function snippetSource() {
     var list = currentScope();
-    return '// LEGO image extractor — paste in Console on www.lego.com\n' +
+    return '// LEGO.com image extractor — search-page version\n' +
+      '// Paste in Console (F12) on any www.lego.com page, press Enter.\n' +
+      deepFindImage.toString() + '\n\n' +
+      parseForImage.toString() + '\n\n' +
       '(async () => {\n' +
       '  const items = ' + JSON.stringify(list) + ';\n' +
       '  const out = {};\n' +
       '  for (const it of items) {\n' +
       '    try {\n' +
-      '      const r = await fetch("https://searchapi.lego.com/api/search?text=" + it + "&country=TH&locale=en-TH", {headers:{Accept:"application/json"}});\n' +
-      '      const d = await r.json();\n' +
-      '      const hits = d.results || d.products || d.items || [];\n' +
-      '      let u = null;\n' +
-      '      for (const h of hits) {\n' +
-      '        const code = String(h.productCode ?? h.itemNumber ?? h.id ?? "").replace(/^0+/, "");\n' +
-      '        if (code === String(it)) { u = h.imageUrl ?? h.image ?? h.thumbnailUrl ?? (h.images && h.images[0]) ?? null; break; }\n' +
-      '      }\n' +
-      '      out[it] = u;\n' +
-      '    } catch (e) { out[it] = null; }\n' +
-      '    await new Promise(r2 => setTimeout(r2, 250));\n' +
+      '      const r = await fetch("' + SEARCH_BASE + '" + it, { headers: { Accept: "text/html" } });\n' +
+      '      const html = await r.text();\n' +
+      '      out[it] = parseForImage(html, it);\n' +
+      '      console.log(out[it] ? "✔ " + it : "… " + it);\n' +
+      '    } catch (e) { out[it] = null; console.log("✖ " + it, e.message); }\n' +
+      '    await new Promise(r2 => setTimeout(r2, 400));\n' +
       '  }\n' +
       '  const json = JSON.stringify(out);\n' +
-      '  try { await navigator.clipboard.writeText(json); console.log("COPIED to clipboard ✔", out); }\n' +
+      '  try { await navigator.clipboard.writeText(json); console.log("COPIED to clipboard ✔ — paste it back in sync.html", out); }\n' +
       '  catch (e) { console.log("COPY FAILED — copy manually:", json); }\n' +
       '})();';
   }
@@ -191,7 +237,7 @@
     };
   }
 
-  // ---------- mode 2b: paste result -> validate -> download ----------
+  // ---------- paste result -> validate -> download ----------
   $('paste').addEventListener('input', validatePaste);
   $('paste').addEventListener('drop', function (ev) {
     ev.preventDefault();
