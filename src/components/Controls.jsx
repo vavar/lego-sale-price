@@ -37,7 +37,7 @@ function HeroSelect({ value, onChange, title, items, ariaLabel }) {
   )
 }
 
-export default function Controls({ q, setQ, filter, setFilter, minDisc, setMinDisc, sort, setSort, onlyReview, setOnlyReview }) {
+export default function Controls({ q, setQ, filter, setFilter, minDisc, setMinDisc, sort, setSort }) {
   return (
     <div className="controls flex flex-col gap-3 mb-4">
       <Input
@@ -82,10 +82,6 @@ export default function Controls({ q, setQ, filter, setFilter, minDisc, setMinDi
               { value: 'price-asc', label: 'ราคาเต็ม ต่ำ → สูง' },
             ]}
           />
-          <label className="chk flex items-center gap-1.5 text-sm text-muted">
-            <input type="checkbox" checked={onlyReview} onChange={e => setOnlyReview(e.target.checked)} />
-            เฉพาะที่ต้องตรวจ ⚠️
-          </label>
         </div>
       </div>
     </div>

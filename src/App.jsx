@@ -18,7 +18,6 @@ export default function App() {
   const [filter, setFilter] = useState('all')
   const [minDisc, setMinDisc] = useState(0)
   const [sort, setSort] = useState('item')
-  const [onlyReview, setOnlyReview] = useState(false)
   const [lightboxIdx, setLightboxIdx] = useState(-1)
 
   // load manifest once
@@ -63,7 +62,6 @@ export default function App() {
   const filtered = useMemo(() => {
     const words = q.toLowerCase().split(/\s+/).filter(Boolean)
     let list = rows.filter(r => {
-      if (onlyReview && r.needs_review !== '1') return false
       if (minDisc > 0 && !(Number(r.discount_pct || 0) >= minDisc)) return false
       if (filter === 'pct' && !r.discount_pct) return false
       if (filter === 'b1g1' && r.promo !== 'Buy 1 Get 1') return false
@@ -109,7 +107,6 @@ export default function App() {
         filter={filter} setFilter={setFilter}
         minDisc={minDisc} setMinDisc={setMinDisc}
         sort={sort} setSort={setSort}
-        onlyReview={onlyReview} setOnlyReview={setOnlyReview}
       />
 
       {error && <div className="error">{error}</div>}

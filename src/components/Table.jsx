@@ -75,7 +75,6 @@ export default function Table({ rows, loading, onOpen }) {
                 <td className="desc">
                   <span dangerouslySetInnerHTML={{ __html: highlight(r.description, '') }} />
                   {r.promo && <span className="badge">{PROMO_LABEL[r.promo] || r.promo}</span>}
-                  {r.needs_review === '1' && <span className="badge warn">⚠ ตรวจสอบ</span>}
                 </td>
                 <td className="num">{fmt(r.price_thb)}</td>
                 <td className="disc">{r.discount_pct ? r.discount_pct + '%' : '—'}</td>
