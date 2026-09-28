@@ -50,9 +50,15 @@ Hermes Agent on vavario (vision extraction from photos), 27 Sep 2026.
 
 ## LEGO.com image sync
 
-Set images are stored in `img/` (480px JPEGs, from the Rebrickable CDN).
-Three sets have no image available anywhere (`10310`, `10318`, `31395`) and
-use generated placeholders.
+Set images are stored in `img/` (480px JPEGs). 872 come from the Rebrickable
+CDN; `10318` (Concorde) and `31394` (Red Panda) are official LEGO.com CDN
+images fetched via a real-browser session. `10310` (Orchid) has no image
+available anywhere (removed from lego.com, absent from Rebrickable) and uses
+a generated placeholder; the same placeholder-style image covers `31395`.
+
+`31395` does not exist on lego.com (verified by code search) — the price
+sheet's duplicate row labelled 31395 is almost certainly `31394` (Cute
+Animals: Red Panda) printed twice; the row stays flagged `needs_review`.
 
 [`sync.html`](https://vavar.github.io/lego-sale-price/sync.html) is a helper
 page (runs in *your* browser, since lego.com blocks datacenter IPs) that
