@@ -1,65 +1,62 @@
 # lego-sale-price
 
-Lego sale price data extracted from in-store price sheets (photos), Thailand.
-Promotion period: **24–27 Sep 2026 (24-27/9/26)**.
+เก็บสถิติราคาขาย LEGO งวดโปรโมชันหน้าร้าน (ประเทศไทย) — เว็บค้นหาได้ ทำจาก
+**Vite + React + HeroUI v3** deploy บน GitHub Pages (static build ไม่มี server).
 
-## Dataset
+**เปิดเว็บ:** https://vavar.github.io/lego-sale-price/
 
-- [`data/lego-sale_2026-09-24-27.csv`](data/lego-sale_2026-09-24-27.csv) — merged dataset, **875 items**
-- `data/pages/*.csv` — one CSV per source photo (19 pages)
+## โครงสร้าง
 
-### Columns
+```
+public/
+  data/
+    sales.json            # รายการงวด sale ทั้งหมด (เว็บอ่านไฟล์นี้)
+    sales/<id>.csv        # ข้อมูลราคาแต่ละงวด
+  img/                    # รูปเซ็ต 875 ไฟล์ (.webp 480px โปร่งใส)
+src/
+  App.jsx                 # state กลาง: โหลดงวด, กรอง, เรียง
+  components/
+    Controls.jsx          # ช่องค้นหา + ฟิลเตอร์ + เรียง (HeroUI Input/Select/Chip)
+    Table.jsx             # ตาราง + lazy image + ปุ่ม copy รหัส
+    Lightbox.jsx          # ดูรูปใหญ่ (HeroUI Modal) + pinch zoom + swipe
+  lib/csv.js              # CSV parser
+data/                     # แหล่งข้อมูลดิบต่องวด (pages/, merge_validate.py)
+scripts/                  # ดาวน์โหลด/จัดการรูปจาก Rebrickable CDN
+tests/                    # parser test + browser smoke test (playwright-core)
+```
 
-| column | meaning |
-|---|---|
-| `item` | LEGO set number |
-| `description` | product name as printed on the price sheet |
-| `price_thb` | original price (THB) |
-| `discount_pct` | discount percent during 24-27/9/26 (empty if promo instead) |
-| `sale_price_thb` | sale price (THB) |
-| `promo` | non-percent promos, e.g. `Buy 1 Get 1`, `Buy 2 Free 1` |
-| `source_image` | source photo (Hermes image cache) |
-| `needs_review` | `1` = row needs manual verification (5 rows) |
-| `source_file` | page CSV this row came from |
+## เพิ่มงวด sale ใหม่
 
-## Quality checks
+1. แกะข้อมูลจากภาพใบราคาเป็น CSV → `data/pages/<sale_id>/*.csv`
+   (คอลัมน์: `item,description,price_thb,discount_pct,sale_price_thb,promo,source_image,needs_review`)
+2. `python3 data/merge_validate.py <sale_id>` → ได้ `data/sales/<sale_id>.csv` + ตรวจสมการราคา
+3. เพิ่ม entry ใน `public/data/sales.json`:
+   ```json
+   { "id": "<sale_id>", "label": "วันที่โชว์บนเว็บ", "file": "data/sales/<sale_id>.csv" }
+   ```
+4. `npm run build` (หรือ push — workflow deploy ให้เอง)
 
-`data/merge_validate.py` validates every row:
+## คำสั่ง
 
-- math check: `price_thb x (1 - discount_pct/100) = sale_price_thb` (tolerance ±0.51 THB)
-- duplicate item codes across pages
-- conflicting rows for the same item
+```bash
+npm install        # ติดตั้งครั้งแรก
+npm run dev        # dev server
+npm run build      # build → dist/
+npm run preview    # ทดลองเปิด build ล่าสุด (port 4173)
+node tests/parser.test.mjs        # unit test parser + ข้อมูล
+node tests/browser.smoke.mjs      # e2e (ต้องรัน npm run preview ก่อน)
+python3 scripts/fetch_images.py   # โหลด/อัปเดตรูปจาก Rebrickable (idempotent)
+```
 
-Status as of extraction: **0 errors**; 1 row (`10358`) where the printed sheet
-itself does not match the math (7,890 × 25% = 5,917.50, sheet shows 5,892.50) —
-kept as printed and flagged `needs_review`.
+## Deploy
 
-Known caveats (flagged `needs_review=1`):
+Push ไปที่ `main` → GitHub Actions (`.github/workflows/deploy.yml`) build แล้ว
+deploy ขึ้น Pages อัตโนมัติ
 
-- `31395` — sheet shows two adjacent rows both labelled 31395; price/percent split unclear in photo
-- `40460`/`40468` — ROSES 790/25% vs YELLOW TAXI 300/25%: prices appear swapped vs official set numbers
-- `43023` — two adjacent rows both printed as "43023 Editions V 43023 V29" at 3,890 (0% and 20%); one is likely 43023, the other a neighbouring set
+## หมายเหตุข้อมูล
 
-Descriptions are OCR-style transcriptions from photos — some contain the
-sheet's own truncations (`..`) and placeholders (`tbd`, `V29`). Set numbers and
-prices are the reliable fields.
-
-## Extracted by
-
-Hermes Agent on vavario (vision extraction from photos), 27 Sep 2026.
-
-## LEGO.com images
-
-Set images are stored in `img/` (480px WebP with transparency). 873 come from
-the Rebrickable CDN; `10318` (Concorde) and `31394` (Red Panda) are official
-LEGO.com CDN images fetched via a real-browser session (see
-`~/projects/lego-fetch/fetch_lego.py` on vavario — lego.com blocks
-datacenter IPs, so fetching must run with a real browser fingerprint).
-
-`10310` never existed as printed: the sheet's "10310 Orchid" row is set
-**10311** (fixed in the data). `31395` does not exist on lego.com — the
-duplicated row is almost certainly `31394`; the row stays flagged
-`needs_review` and shows the 31394 image.
-
-Re-run `scripts/fetch_images.py` to refresh images from Rebrickable; it only
-downloads what's missing (set `MAXSIDE`/quality as needed).
+- รูป: 873 จาก Rebrickable CDN, 10318 + 31394 จาก LEGO.com CDN (ดึงผ่าน
+  real-browser session เพราะ lego.com บล็อก datacenter IP)
+- แถว "10310 Orchid" ในใบราคาแรกแท้จริงคือเซ็ต **10311** (ยืนยันกับ search
+  ทางการของ LEGO แล้ว) — แก้ในข้อมูลแล้ว
+- "31395" ไม่มีบน lego.com; ใบราคาพิมพ์ 31394 ซ้ำ (แถวถูกลบออกจากงวดแรก)

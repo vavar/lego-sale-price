@@ -3,86 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>LEGO ราคาลด 24–27/9/26</title>
+<title>LEGO ราคาลด</title>
 <link rel="icon" href="data:,">
-<link rel="stylesheet" href="assets/style.css">
-<link rel="stylesheet" href="assets/lightbox.css">
 </head>
 <body>
-<div class="wrap">
-  <header>
-    <h1>🧱 LEGO <span class="accent">ราคาลด</span> 24–27/9/26</h1>
-    <p class="sub" id="stats">กำลังโหลดข้อมูล…</p>
-  </header>
-
-  <div class="controls">
-    <input id="q" class="search" type="search"
-           placeholder="ค้นหาเลขเซ็ตหรือชื่อ เช่น 10305, Batman, Orchid, McLaren…" autofocus>
-
-    <div class="row">
-      <div class="chips" id="chips">
-        <button data-chip="all" class="active">ทั้งหมด</button>
-        <button data-chip="pct">ลด %</button>
-        <button data-chip="b1g1">ซื้อ 1 แถม 1</button>
-        <button data-chip="b2f1">ซื้อ 2 แถม 1</button>
-        <button data-chip="full">ราคาเต็ม</button>
-      </div>
-      <div class="right">
-        <select id="minDisc" title="ส่วนลดขั้นต่ำ">
-          <option value="0">ส่วนลดทุกระดับ</option>
-          <option value="15">15% ขึ้นไป</option>
-          <option value="20">20% ขึ้นไป</option>
-          <option value="25">25% ขึ้นไป</option>
-          <option value="30">30% ขึ้นไป</option>
-          <option value="40">40% ขึ้นไป</option>
-          <option value="50">50% ขึ้นไป</option>
-          <option value="70">70% ขึ้นไป</option>
-        </select>
-        <select id="sort" title="เรียงลำดับ">
-          <option value="item">เรียง: เลขเซ็ต</option>
-          <option value="disc-desc">%ลด มาก → น้อย</option>
-          <option value="save-desc">ประหยัดมาก → น้อย</option>
-          <option value="price-desc">ราคาเต็ม สูง → ต่ำ</option>
-          <option value="price-asc">ราคาเต็ม ต่ำ → สูง</option>
-        </select>
-        <label class="chk"><input type="checkbox" id="onlyReview"> เฉพาะที่ต้องตรวจ ⚠️</label>
-      </div>
-    </div>
-  </div>
-
-  <div id="error" class="error hidden"></div>
-
-  <div class="tablewrap">
-    <table id="tbl" class="hidden">
-      <thead>
-        <tr>
-          <th></th><th>เซ็ต</th><th>ชื่อ</th>
-          <th class="num">ราคาเต็ม</th><th>ลด</th>
-          <th class="num">ราคาลด</th><th class="num">ประหยัด</th>
-        </tr>
-      </thead>
-      <tbody id="tbody"></tbody>
-    </table>
-  </div>
-
-  <footer>
-    ข้อมูลแกะจากใบปิดราคาหน้าร้าน (19 หน้า) ·
-    <a href="data/lego-sale_2026-09-24-27.csv">ดาวน์โหลด CSV</a> ·
-    <a href="https://github.com/vavar/lego-sale-price" target="_blank" rel="noopener">github.com/vavar/lego-sale-price</a>
-  </footer>
-</div>
-<div id="lb" class="hidden">
-  <button class="lb-close" title="ปิด (Esc)">✕</button>
-  <div class="lb-stage">
-    <button class="lb-prev" title="ก่อนหน้า (←)">‹</button>
-    <img class="lb-img" alt="set image">
-    <button class="lb-next" title="ถัดไป (→)">›</button>
-    <div class="lb-hint">pinch เพื่อซูม · แตะ 2 ครั้งเพื่อซูม · ปัดซ้าย/ขวาเพื่อดูเซ็ตอื่น</div>
-    <div class="lb-counter"></div>
-    <div class="lb-caption"></div>
-  </div>
-</div>
-<script src="assets/lightbox.js"></script>
-<script src="assets/app.js"></script>
+<div id="root"></div>
+<script type="module" src="/src/main.jsx"></script>
 </body>
 </html>
