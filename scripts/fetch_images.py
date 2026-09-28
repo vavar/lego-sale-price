@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Download official set images from Rebrickable CDN and store resized
-copies in img/{item}.jpg (max 480px, JPEG q82) for the GitHub Pages site.
+copies in img/{item}.webp (max 480px, WebP with alpha preserved).
 
 Idempotent: skips items already downloaded. Failures are recorded in
 scripts/image_failures.txt and the script exits 1 if any remain.
@@ -28,8 +28,20 @@ def load_items():
         return sorted({r["item"] for r in csv.DictReader(f)})
 
 
+def to_webp(data, path):
+    im = Image.open(io.BytesIO(data))
+    im.load()
+    if im.mode in ("P", "LA", "RGBA"):
+        im = im.convert("RGBA")  # keep transparency
+    else:
+        im = im.convert("RGB")
+    im.thumbnail((MAXSIDE, MAXSIDE), Image.LANCZOS)
+    im.save(path, "WEBP", quality=80, method=6)
+    return os.path.getsize(path)
+
+
 def fetch(item):
-    path = os.path.join(OUT, item + ".jpg")
+    path = os.path.join(OUT, item + ".webp")
     last_err = "unreachable"
     for version in (1, 2, 3):
         url = f"https://cdn.rebrickable.com/media/sets/{item}-{version}.jpg"
@@ -37,12 +49,8 @@ def fetch(item):
             try:
                 with urlopen(Request(url, headers=HEADERS), timeout=30) as resp:
                     data = resp.read()
-                im = Image.open(io.BytesIO(data))
-                im.load()
-                im = im.convert("RGB")
-                im.thumbnail((MAXSIDE, MAXSIDE), Image.LANCZOS)
-                im.save(path, "JPEG", quality=82, optimize=True, progressive=True)
-                return item, os.path.getsize(path), None
+                size = to_webp(data, path)
+                return item, size, None
             except Exception as e:  # noqa: BLE001
                 last_err = f"{type(e).__name__}: {e}"
                 if attempt == 2:
@@ -54,7 +62,7 @@ def fetch(item):
 def main():
     os.makedirs(OUT, exist_ok=True)
     items = load_items()
-    todo = [i for i in items if not os.path.exists(os.path.join(OUT, i + ".jpg"))]
+    todo = [i for i in items if not os.path.exists(os.path.join(OUT, i + ".webp"))]
     print(f"{len(items)} sets | {len(items) - len(todo)} already present | downloading {len(todo)}", flush=True)
 
     ok = fail = 0

@@ -74,7 +74,7 @@
       ? Number(r.price_thb) - Number(r.sale_price_thb) : null;
     var desc = highlight(r.description) + promoBadge +
       (r.needs_review === '1' ? ' <span class="badge warn">⚠ ตรวจสอบ</span>' : '');
-    var imgUrl = 'img/' + encodeURIComponent(r.item) + '.jpg';
+    var imgUrl = 'img/' + encodeURIComponent(r.item) + '.webp';
     var hiRes = 'https://cdn.rebrickable.com/media/sets/' + encodeURIComponent(r.item) + '-1.jpg';
     r._img = imgUrl;
     r._hires = hiRes;

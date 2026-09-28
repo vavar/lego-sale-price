@@ -77,7 +77,7 @@ eval(src);
   assert.ok(/875/.test(stats), 'stats should mention 875');
   console.log('stats:', stats);
   assert.ok(/<td class="item">/.test(created[0]._html), 'row has item td');
-  assert.ok(/data-src="img\/[^"]+\.jpg"/.test(created[0]._html), 'row uses local repo image');
+  assert.ok(/data-src="img\/[^"]+\.webp"/.test(created[0]._html), 'row uses local repo webp image');
   assert.ok(/data-hires="https:\/\/cdn\.rebrickable\.com\/media\/sets\/[^"]+-1\.jpg"/.test(created[0]._html), 'row keeps hi-res CDN url');
   assert.ok(/href="https:\/\/www\.lego\.com\/en-th\/search\?q=[^"]+"/.test(created[0]._html), 'row links to LEGO.com search');
   assert.ok(/<button class="copy" data-item="[^"]+"/.test(created[0]._html), 'row has copy button');

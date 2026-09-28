@@ -65,12 +65,22 @@ button.copy {
 }
 button.copy:hover { opacity: 1; transform: scale(1.15); }
 td.desc { min-width: 220px; }
-td.imgcell { width: 56px; }
+td.imgcell { width: 56px; border-radius: 6px; }
+/* checkerboard hint behind transparent webp thumbs */
+td.imgcell {
+  background-image:
+    linear-gradient(45deg, #eef0f4 25%, transparent 25%),
+    linear-gradient(-45deg, #eef0f4 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, #eef0f4 75%),
+    linear-gradient(-45deg, transparent 75%, #eef0f4 75%);
+  background-size: 12px 12px;
+  background-position: 0 0, 0 6px, 6px -6px, -6px 0;
+}
 td.imgcell img {
   width: 56px; height: 56px; object-fit: contain; border-radius: 6px;
-  background: #fff; border: 1px solid var(--line); display: block; cursor: zoom-in;
+  border: 1px solid #d9dde6; display: block; cursor: zoom-in;
+  padding: 3px; background: transparent;
 }
-td.imgcell a { display: block; }
 .badge {
   display: inline-block; background: #eef0f5; border: 1px solid var(--line);
   border-radius: 6px; padding: 0 6px; font-size: .74rem; margin-left: 6px; white-space: nowrap;
