@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react'
-import Table from './components/Table.jsx'
+import Table, { CARD_SIZE_KEY } from './components/Table.jsx'
 import Lightbox from './components/Lightbox.jsx'
 import Controls from './components/Controls.jsx'
 import { parseCSV } from './lib/csv.js'
@@ -19,6 +19,12 @@ export default function App() {
   const [minDisc, setMinDisc] = useState(0)
   const [sort, setSort] = useState('item')
   const [lightboxIdx, setLightboxIdx] = useState(-1)
+  const [cardSize, setCardSize] = useState(() => {
+    try { return localStorage.getItem(CARD_SIZE_KEY) || 'list' } catch { return 'list' }
+  })
+  useEffect(() => {
+    try { localStorage.setItem(CARD_SIZE_KEY, cardSize) } catch {}
+  }, [cardSize])
 
   // load manifest once
   useEffect(() => {
@@ -102,6 +108,14 @@ export default function App() {
         </div>
       )}
 
+      <div className="viewtoggle" role="group" aria-label="รูปแบบการแสดงผล">
+        <span className="viewtoggle-label">ขนาดการ์ด:</span>
+        <div className="seg">
+          <button className={cardSize === 'list' ? 'active' : ''} onClick={() => setCardSize('list')}>☰ รายการ</button>
+          <button className={cardSize === 'grid' ? 'active' : ''} onClick={() => setCardSize('grid')}>▦ 2 คอลัมน์</button>
+        </div>
+      </div>
+
       <Controls
         q={q} setQ={setQ}
         filter={filter} setFilter={setFilter}
@@ -111,7 +125,7 @@ export default function App() {
 
       {error && <div className="error">{error}</div>}
 
-      <Table rows={filtered} loading={loading} onOpen={setLightboxIdx} />
+      <Table rows={filtered} loading={loading} onOpen={setLightboxIdx} cardSize={cardSize} />
 
       <footer>
         ข้อมูลแกะจากใบปิดราคาหน้าร้าน ·{' '}

@@ -109,33 +109,80 @@ footer a { color: var(--accent); text-decoration: none; }
   thead { display: none; }
   tbody tr {
     display: grid;
-    grid-template-columns: 64px 1fr 1fr 1fr 1fr;
+    grid-template-columns: 96px 1fr;
     grid-template-rows: auto auto auto;
-    gap: 2px 6px;
+    gap: 4px 10px;
     background: var(--card);
     border: 1px solid var(--line);
     border-radius: 12px;
     padding: 10px;
     margin-bottom: 10px;
+    align-items: start;
   }
   td { border-bottom: none; padding: 2px 4px; }
-  td.imgcell { grid-row: 1 / 3; grid-column: 1; align-self: start; }
-  td.item { grid-row: 1; grid-column: 2 / 5; font-size: .95rem; }
-  td.desc { grid-row: 2; grid-column: 2 / 5; min-width: 0; font-size: .85rem; color: var(--muted); }
+  td.imgcell { grid-row: 1 / 4; grid-column: 1; align-self: start; width: 96px; max-width: 96px; }
+  td.imgcell .thumbwrap, td.imgcell .thumbwrap img { width: 96px; height: 96px; }
+  td.imgcell img { width: 96px; height: 96px; }
+  td.item { grid-row: 1; grid-column: 2; font-size: .95rem; white-space: normal; }
+  td.desc { grid-row: 2; grid-column: 2; min-width: 0; font-size: .85rem; color: var(--muted); }
   td.full, td.disc, td.sale, td.save {
-    grid-row: 3; text-align: center; white-space: nowrap;
-    font-size: .95rem;
+    grid-row: 3; text-align: center; white-space: nowrap; font-size: .95rem;
   }
-  td.full { grid-column: 1; }
-  td.disc { grid-column: 2; }
-  td.sale { grid-column: 3; }
-  td.save { grid-column: 4; }
-  td.full::before { content: "ราคาเต็ม"; display: block; font-size: .68rem; color: var(--muted); font-weight: 400; }
-  td.disc::before { content: "ลด"; display: block; font-size: .68rem; color: var(--muted); font-weight: 400; }
-  td.sale::before { content: "ราคาลด"; display: block; font-size: .68rem; color: var(--muted); font-weight: 400; }
-  td.save::before { content: "ประหยัด"; display: block; font-size: .68rem; color: var(--muted); font-weight: 400; }
-  td.full { text-decoration: line-through; color: var(--muted); font-weight: 400; }
+  td.full { grid-column: 2; }
+  td.disc { grid-column: 3; }
+  td.sale { grid-column: 4; }
+  td.save { grid-column: 5; margin-right: -8px; }
+  /* 4 price columns fit across the right side */
+  tbody tr { grid-template-columns: 96px 1fr 1fr 1fr 1fr; }
+  td.full::before { content: "ราคาเต็ม"; display: block; font-size: .66rem; color: var(--muted); font-weight: 400; }
+  td.disc::before { content: "ลด"; display: block; font-size: .66rem; color: var(--muted); font-weight: 400; }
+  td.sale::before { content: "ราคาลด"; display: block; font-size: .66rem; color: var(--muted); font-weight: 400; }
+  td.save::before { content: "ประหยัด"; display: block; font-size: .66rem; color: var(--muted); font-weight: 400; }
+  td.full { text-decoration: line-through; color: var(--muted); font-weight: 400; font-size: .8rem; align-self: center; }
+  td.disc { align-self: center; font-size: .85rem; }
+  td.sale { align-self: center; }
+  td.save { align-self: center; font-size: .85rem; }
+
+  /* ---- grid mode (2 columns, big image on top) ---- */
+  .card-grid tbody {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+  }
+  .card-grid tbody tr {
+    display: flex; flex-direction: column;
+    margin-bottom: 0; padding: 0; overflow: hidden;
+  }
+  .card-grid td.imgcell { grid-row: auto; grid-column: auto; width: 100% !important; max-width: 100%; }
+  .card-grid td.imgcell .thumbwrap { width: 100% !important; height: 150px !important; display: block; }
+  .card-grid td.imgcell img { width: 100% !important; height: 150px !important; }
+  .card-grid td.imgcell img { object-fit: contain; background: var(--bg); padding: 6px; }
+  .card-grid td.item { grid-row: auto; grid-column: auto; padding: 8px 10px 0; white-space: normal; }
+  .card-grid td.desc { grid-row: auto; grid-column: auto; padding: 2px 10px; }
+  .card-grid td.full, .card-grid td.disc, .card-grid td.sale, .card-grid td.save {
+    grid-row: auto; grid-column: auto; text-align: left; padding: 1px 10px;
+  }
+  .card-grid td.full::before, .card-grid td.disc::before,
+  .card-grid td.sale::before, .card-grid td.save::before {
+    content: ""; display: none;
+  }
+  .card-grid td.full { font-size: .8rem; align-self: auto; }
+  .card-grid td.sale { font-weight: 700; }
+  .card-grid td.save { margin-bottom: 8px; }
 }
+
+/* toggle */
+.viewtoggle {
+  display: flex; align-items: center; gap: 8px; margin-bottom: 12px;
+}
+.viewtoggle-label { color: var(--muted); font-size: .85rem; }
+.seg {
+  display: inline-flex; border: 1px solid var(--line);
+  border-radius: 999px; overflow: hidden; background: var(--card);
+}
+.seg button {
+  border: none; background: transparent; color: var(--muted);
+  padding: 6px 14px; font-size: .85rem; cursor: pointer;
+}
+.seg button.active { background: var(--accent); color: var(--accent-contrast); font-weight: 700; }
 
 /* lightbox */
 #lb {

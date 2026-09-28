@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react'
 
 const PROMO_LABEL = { 'Buy 1 Get 1': 'ซื้อ1แถม1', 'Buy 2 Free 1': 'ซื้อ2แถม1' }
 const BASE = import.meta.env.BASE_URL
+export const CARD_SIZE_KEY = 'cardSize' // 'list' | 'grid'
 
 function fmt(n) {
   return n == null ? '' : Number(n).toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
@@ -46,10 +47,10 @@ function Thumb({ item }) {
   )
 }
 
-export default function Table({ rows, loading, onOpen }) {
+export default function Table({ rows, loading, onOpen, cardSize = 'list' }) {
   if (loading) return null
   return (
-    <div className="tablewrap">
+    <div className={`tablewrap card-${cardSize}`}>
       <table>
         <thead>
           <tr>
