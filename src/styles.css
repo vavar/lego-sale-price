@@ -68,10 +68,29 @@ button.copy {
 button.copy:hover { opacity: 1; transform: scale(1.15); }
 td.desc { min-width: 220px; }
 td.imgcell { width: 56px; border-radius: 6px; background: var(--bg); }
+.thumbwrap {
+  position: relative; display: block; width: 56px; height: 56px;
+  border-radius: 6px; overflow: hidden;
+}
+.thumb-skeleton {
+  position: absolute; inset: 0; border-radius: 6px;
+  background: linear-gradient(100deg, #eceef3 40%, #f7f8fb 50%, #eceef3 60%);
+  background-size: 200% 100%;
+  animation: thumb-shimmer 1.4s ease-in-out infinite;
+}
+@keyframes thumb-shimmer {
+  0% { background-position: 120% 0; }
+  100% { background-position: -80% 0; }
+}
+.thumb-fallback {
+  position: absolute; inset: 0; display: flex;
+  align-items: center; justify-content: center; font-size: 1.2rem;
+  opacity: .5; background: var(--bg);
+}
 td.imgcell img {
-  width: 56px; height: 56px; object-fit: contain; border-radius: 6px;
-  border: 1px solid #e3e6ee; display: block; cursor: zoom-in;
-  padding: 3px; background: transparent;
+  position: relative; width: 56px; height: 56px; object-fit: contain;
+  display: block; cursor: zoom-in; padding: 3px; background: transparent;
+  border: 1px solid transparent;
 }
 .badge {
   display: inline-block; background: #eef0f5; border: 1px solid var(--line);

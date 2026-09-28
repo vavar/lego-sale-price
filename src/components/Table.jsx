@@ -21,25 +21,28 @@ function highlight(text, q) {
 function Thumb({ item }) {
   const ref = useRef(null)
   const [loaded, setLoaded] = useState(false)
+  const [failed, setFailed] = useState(false)
   useEffect(() => {
     const el = ref.current
     if (!el) return
-    const io = new IntersectionObserver(entries => {
-      entries.forEach(en => {
-        if (en.isIntersecting) { el.src = el.dataset.src; io.unobserve(el) }
-      })
-    }, { rootMargin: '300px' })
-    io.observe(el)
-    return () => io.disconnect()
+    // Load everything, but staggered after first paint so the table renders
+    // instantly and images fill in quietly (browser caches + parallelizes).
+    const t = setTimeout(() => { el.src = el.dataset.src }, 200 + Math.random() * 1800)
+    return () => clearTimeout(t)
   }, [])
   return (
-    <img
-      ref={ref}
-      data-src={`${BASE}img/${encodeURIComponent(item)}.webp`}
-      alt={item} loading="lazy" title="แตะเพื่อดูรูปใหญ่"
-      onLoad={() => setLoaded(true)}
-      style={{ opacity: loaded ? 1 : 0.15 }}
-    />
+    <span className="thumbwrap">
+      {!loaded && !failed && <span className="thumb-skeleton" aria-hidden="true" />}
+      <img
+        ref={ref}
+        data-src={`${BASE}img/${encodeURIComponent(item)}.webp`}
+        alt={item} title="แตะเพื่อดูรูปใหญ่"
+        onLoad={() => setLoaded(true)}
+        onError={() => setFailed(true)}
+        style={{ opacity: loaded || failed ? 1 : 0, transition: 'opacity .3s' }}
+      />
+      {failed && <span className="thumb-fallback">🧱</span>}
+    </span>
   )
 }
 
