@@ -82,7 +82,7 @@ export default function App() {
     }[sort]
     if (cmp) list = [...list].sort(cmp)
     return list
-  }, [rows, q, filter, minDisc, sort, onlyReview])
+  }, [rows, q, filter, minDisc, sort])
 
   return (
     <div className="wrap">
