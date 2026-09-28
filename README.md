@@ -48,26 +48,18 @@ prices are the reliable fields.
 
 Hermes Agent on vavario (vision extraction from photos), 27 Sep 2026.
 
-## LEGO.com image sync
+## LEGO.com images
 
-Set images are stored in `img/` (480px JPEGs). 872 come from the Rebrickable
-CDN; `10318` (Concorde) and `31394` (Red Panda) are official LEGO.com CDN
-images fetched via a real-browser session. `10310` (Orchid) has no image
-available anywhere (removed from lego.com, absent from Rebrickable) and uses
-a generated placeholder; the same placeholder-style image covers `31395`.
+Set images are stored in `img/` (480px WebP with transparency). 873 come from
+the Rebrickable CDN; `10318` (Concorde) and `31394` (Red Panda) are official
+LEGO.com CDN images fetched via a real-browser session (see
+`~/projects/lego-fetch/fetch_lego.py` on vavario — lego.com blocks
+datacenter IPs, so fetching must run with a real browser fingerprint).
 
-`31395` does not exist on lego.com (verified by code search) — the price
-sheet's duplicate row labelled 31395 is almost certainly `31394` (Cute
-Animals: Red Panda) printed twice; the row stays flagged `needs_review`.
+`10310` never existed as printed: the sheet's "10310 Orchid" row is set
+**10311** (fixed in the data). `31395` does not exist on lego.com — the
+duplicated row is almost certainly `31394`; the row stays flagged
+`needs_review` and shows the 31394 image.
 
-[`sync.html`](https://vavar.github.io/lego-sale-price/sync.html) is a helper
-page (runs in *your* browser, since lego.com blocks datacenter IPs) that
-extracts official LEGO.com image URLs and produces `lego-images.json`:
-
-1. pick scope (only-missing / all / custom list)
-2. try direct LEGO Search API fetch, or copy the generated console snippet
-   and run it on any lego.com page (result lands in your clipboard)
-3. paste the JSON back → download `lego-images.json` → send it back to be
-   merged into `img/`
-
-Re-run `scripts/fetch_images.py` to refresh; it only downloads what's missing.
+Re-run `scripts/fetch_images.py` to refresh images from Rebrickable; it only
+downloads what's missing (set `MAXSIDE`/quality as needed).
