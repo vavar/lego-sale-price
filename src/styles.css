@@ -102,6 +102,41 @@ mark { background: #ffe58a; color: var(--text); border-radius: 3px; padding: 0 1
 footer { color: var(--muted); font-size: .82rem; margin: 14px 0 30px; text-align: center; }
 footer a { color: var(--accent); text-decoration: none; }
 
+/* ---------- mobile: table → card list ---------- */
+@media (max-width: 640px) {
+  .tablewrap { border: none; background: transparent; box-shadow: none; overflow-x: visible; }
+  table, tbody { display: block; }
+  thead { display: none; }
+  tbody tr {
+    display: grid;
+    grid-template-columns: 64px 1fr 1fr 1fr 1fr;
+    grid-template-rows: auto auto auto;
+    gap: 2px 6px;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 10px;
+    margin-bottom: 10px;
+  }
+  td { border-bottom: none; padding: 2px 4px; }
+  td.imgcell { grid-row: 1 / 3; grid-column: 1; align-self: start; }
+  td.item { grid-row: 1; grid-column: 2 / 5; font-size: .95rem; }
+  td.desc { grid-row: 2; grid-column: 2 / 5; min-width: 0; font-size: .85rem; color: var(--muted); }
+  td.full, td.disc, td.sale, td.save {
+    grid-row: 3; text-align: center; white-space: nowrap;
+    font-size: .95rem;
+  }
+  td.full { grid-column: 1; }
+  td.disc { grid-column: 2; }
+  td.sale { grid-column: 3; }
+  td.save { grid-column: 4; }
+  td.full::before { content: "ราคาเต็ม"; display: block; font-size: .68rem; color: var(--muted); font-weight: 400; }
+  td.disc::before { content: "ลด"; display: block; font-size: .68rem; color: var(--muted); font-weight: 400; }
+  td.sale::before { content: "ราคาลด"; display: block; font-size: .68rem; color: var(--muted); font-weight: 400; }
+  td.save::before { content: "ประหยัด"; display: block; font-size: .68rem; color: var(--muted); font-weight: 400; }
+  td.full { text-decoration: line-through; color: var(--muted); font-weight: 400; }
+}
+
 /* lightbox */
 #lb {
   position: fixed; inset: 0; z-index: 100;
