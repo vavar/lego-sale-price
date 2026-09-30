@@ -89,8 +89,8 @@ export default function Table({ rows, loading, onOpen, cardSize = 'list' }) {
                   <Thumb item={r.item} />
                 </td>
                 <td className="item">
-                  <a className="itemlink" href={`https://www.lego.com/en-th/search?q=${encodeURIComponent(r.item)}`}
-                     target="_blank" rel="noopener" title={`เปิด LEGO.com ค้นหา ${r.item}`}>
+                  <a className="itemlink" href={`https://shopee.co.th/search?keyword=lego%20${encodeURIComponent(r.item)}`}
+                     target="_blank" rel="noopener" title={`ค้นหา "${r.item}" บน Shopee`}>
                     {r.item}
                   </a>
                   <CopyButton item={r.item} />

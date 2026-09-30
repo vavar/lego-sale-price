@@ -91,7 +91,7 @@ export default function Lightbox({ list, idx, onClose, onNavigate }) {
       : `Set ${r.item} · ${price} บาท`
 
   return (
-    <Modal.Backdrop isOpen onOpenChange={open => { if (!open) onClose() }}>
+    <Modal.Backdrop isOpen onOpenChange={open => { if (!open) onClose() }} className="lb-backdrop">
       <Modal.Container size="cover" className="bg-transparent shadow-none">
         <div className="lb-stage">
           <Button

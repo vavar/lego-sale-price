@@ -1,5 +1,5 @@
 import React from 'react'
-import { Input, Select, ListBox, Label, Chip } from '@heroui/react'
+import { Input, Select, ListBox, Chip } from '@heroui/react'
 
 const CHIPS = [
   ['all', 'ทั้งหมด'],
@@ -10,17 +10,17 @@ const CHIPS = [
 ]
 
 function HeroSelect({ value, onChange, title, items, ariaLabel }) {
-  const current = items.find(i => i.value === value)
   return (
     <Select
       aria-label={ariaLabel}
       title={title}
       className="w-44"
-      value={value}
+      value={String(value)}
       onChange={v => onChange(v)}
     >
       <Select.Trigger>
-        <Select.Value>{current?.label ?? ''}</Select.Value>
+        {/* per HeroUI docs: Value renders the selected item's text itself */}
+        <Select.Value />
         <Select.Indicator />
       </Select.Trigger>
       <Select.Popover>

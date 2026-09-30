@@ -54,7 +54,14 @@ th {
 }
 td { padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
 tbody tr:last-child td { border-bottom: none; }
-tbody tr:hover { background: #f1f3f8; }
+/* sticky :hover on touch devices looks like a stuck "select" effect — pointer only */
+@media (hover: hover) {
+  tbody tr:hover { background: #f1f3f8; }
+}
+@media (hover: none) {
+  tbody tr:hover { background: transparent; }
+  * { -webkit-tap-highlight-color: rgba(0, 0, 0, .12); }
+}
 td.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
 td.sale, .num.sale { color: var(--accent); font-weight: 700; }
 td.save { color: var(--green); }
@@ -189,13 +196,14 @@ footer a { color: var(--accent); text-decoration: none; }
 }
 .seg button.active { background: var(--accent); color: var(--accent-contrast); font-weight: 700; }
 
-/* lightbox */
-#lb {
-  position: fixed; inset: 0; z-index: 100;
-  background: rgba(8, 8, 12, .94);
-  display: flex; align-items: center; justify-content: center;
-  touch-action: none;
+/* --- lightbox centering fix: HeroUI's .modal__container centers horizontally
+       only (flex items-center, no justify-center) — the image hugged the top.
+       Center both axes ourselves instead of patching HeroUI internals. --- */
+.lb-backdrop .modal__container {
+  justify-content: center !important;
+  align-items: center;
 }
+.lb-backdrop .modal__container > * { pointer-events: auto; }
 .lb-img {
   max-width: min(92vw, 900px); max-height: 78vh;
   border-radius: 10px; background: #fff; user-select: none;
