@@ -1,0 +1,41 @@
+/* Global mobile-first hardening: touch targets, zoom safety, font scaling */
+@media (max-width: 640px) {
+  html { -webkit-text-size-adjust: 100%; }
+  /* disable browser double-tap zoom artifacts inside scroll containers */
+  .tablewrap { -webkit-tap-highlight-color: transparent; }
+
+  /* HeroUI (Tailwind preflight) may render controls smaller than body font;
+     normalize so inputs/selects don't zoom the viewport on focus (iOS) */
+  input, select, button { font: inherit; }
+
+  /* accessible touch targets: copy buttons, chips, segmented control */
+  button.copy {
+    min-width: 36px; min-height: 36px; opacity: .7;
+    font-size: 1rem; line-height: 1;
+    border-radius: 8px; transition: opacity .15s, background .15s;
+  }
+  button.copy:hover { background: #f1f3f8; }
+  .chips button { min-height: 36px; }
+  .seg button { min-height: 36px; padding: 6px 16px; }
+
+  /* keep controls one per line, comfortable spacing */
+  .controls .row { flex-direction: column; align-items: stretch; }
+  .controls .right { justify-content: space-between; }
+
+  /* Thai text: give breathing room */
+  .sub { font-size: .9rem; line-height: 1.5; }
+  td.desc { line-height: 1.45; }
+  td.item { line-height: 1.4; }
+
+  /* badge inside item cell */
+  .badge { margin-left: 6px; transform: translateY(-1px); }
+
+  /* respect notches */
+  .wrap { padding-left: max(16px, env(safe-area-inset-left)); padding-right: max(16px, env(safe-area-inset-right)); }
+  footer { padding-bottom: env(safe-area-inset-bottom); }
+}
+
+@media (max-width: 360px) {
+  header h1 { font-size: 1.2rem; }
+  .card-grid tbody { grid-template-columns: 1fr; } /* 2 cols too cramped below 360px */
+}

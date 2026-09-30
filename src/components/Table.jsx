@@ -5,7 +5,19 @@ const BASE = import.meta.env.BASE_URL
 export const CARD_SIZE_KEY = 'cardSize' // 'list' | 'grid'
 
 function fmt(n) {
-  return n == null ? '' : Number(n).toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+  const num = Number(n)
+  if (!Number.isFinite(num)) return ''
+  // drop ".00" on whole baht amounts — less noise, narrower cells on mobile
+  return num.toLocaleString('th-TH', Number.isInteger(num)
+    ? { maximumFractionDigits: 0 }
+    : { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+}
+
+// safe numeric parse — sale_price_thb can hold promo text (e.g. "Buy 2 Free 1")
+function toNum(v) {
+  if (v == null || v === '') return null
+  const n = Number(v)
+  return Number.isFinite(n) ? n : null
 }
 
 function esc(s) {
@@ -38,6 +50,7 @@ function Thumb({ item }) {
         ref={ref}
         data-src={`${BASE}img/${encodeURIComponent(item)}.webp`}
         alt={item} title="แตะเพื่อดูรูปใหญ่"
+        width="84" height="84"
         onLoad={() => setLoaded(true)}
         onError={() => setFailed(true)}
         style={{ opacity: loaded || failed ? 1 : 0, transition: 'opacity .3s' }}
@@ -54,19 +67,25 @@ export default function Table({ rows, loading, onOpen, cardSize = 'list' }) {
       <table>
         <thead>
           <tr>
-            <th></th><th>เซ็ต</th><th>ชื่อ</th>
-            <th className="num">ราคาเต็ม</th><th>ลด</th>
-            <th className="num">ราคาลด</th><th className="num">ประหยัด</th>
+            <th scope="col"></th><th scope="col">เซ็ต</th><th scope="col">ชื่อ</th>
+            <th scope="col" className="num">ราคาเต็ม</th><th scope="col">ลด</th>
+            <th scope="col" className="num">ราคาลด</th><th scope="col" className="num">ประหยัด</th>
           </tr>
         </thead>
         <tbody>
           {rows.map((r, i) => {
-            const save = r.discount_pct && r.sale_price_thb
-              ? Number(r.price_thb) - Number(r.sale_price_thb) : null
-            const rowClass = r.promo ? 'promo' : (Number(r.price_thb) === Number(r.sale_price_thb) ? 'full' : 'pct')
+            const price = toNum(r.price_thb)
+            const sale = toNum(r.sale_price_thb)
+            const save = sale != null && price != null ? price - sale : null
+            const promoText = r.promo ? (PROMO_LABEL[r.promo] || r.promo) : null
+            const rowClass = r.promo ? 'promo' : (sale != null && price != null && sale === price ? 'full' : 'pct')
             return (
               <tr key={r.item} className={rowClass}>
-                <td className="imgcell" onClick={() => onOpen(i)}>
+                <td className="imgcell"
+                    onClick={() => onOpen(i)}
+                    onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onOpen(i) } }}
+                    role="button" tabIndex={0}
+                    aria-label={`ดูรูปใหญ่ เซ็ต ${r.item}`}>
                   <Thumb item={r.item} />
                 </td>
                 <td className="item">
@@ -78,11 +97,13 @@ export default function Table({ rows, loading, onOpen, cardSize = 'list' }) {
                 </td>
                 <td className="desc">
                   <span dangerouslySetInnerHTML={{ __html: highlight(r.description, '') }} />
-                  {r.promo && <span className="badge">{PROMO_LABEL[r.promo] || r.promo}</span>}
                 </td>
-                <td className="num full">{fmt(r.price_thb)}</td>
+                <td className="num full">{price != null ? fmt(price) : '—'}</td>
                 <td className="disc">{r.discount_pct ? r.discount_pct + '%' : '—'}</td>
-                <td className="num sale">{fmt(r.sale_price_thb)}</td>
+                <td className={'num sale' + (sale == null ? ' promo-text' : '')}>
+                  {sale != null ? fmt(sale) : (promoText || '—')}
+                  {r.discount_pct ? <span className="pill">−{r.discount_pct}%</span> : null}
+                </td>
                 <td className="num save">{save ? fmt(save) : '—'}</td>
               </tr>
             )
@@ -105,7 +126,7 @@ function CopyButton({ item }) {
     setTimeout(() => setState('idle'), 1200)
   }
   return (
-    <button className="copy" onClick={copy} title="คัดลอกรหัสเซ็ต">
+    <button className="copy" onClick={copy} title="คัดลอกรหัสเซ็ต" aria-label={`คัดลอกรหัสเซ็ต ${item}`}>
       {state === 'ok' ? '✅' : state === 'fail' ? '❌' : '📋'}
     </button>
   )

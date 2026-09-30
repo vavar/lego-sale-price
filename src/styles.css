@@ -67,7 +67,9 @@ button.copy {
 }
 button.copy:hover { opacity: 1; transform: scale(1.15); }
 td.desc { min-width: 220px; }
-td.imgcell { width: 56px; border-radius: 6px; background: var(--bg); }
+td.imgcell { width: 60px; }
+td.imgcell, td.imgcell * { cursor: zoom-in; }
+td.imgcell:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 6px; }
 .thumbwrap {
   position: relative; display: block; width: 56px; height: 56px;
   border-radius: 6px; overflow: hidden;
@@ -97,6 +99,11 @@ td.imgcell img {
   border-radius: 6px; padding: 0 6px; font-size: .74rem; margin-left: 6px; white-space: nowrap;
 }
 .badge.warn { background: #fff7e0; border-color: #e0c368; color: #7a5d00; }
+.pill {
+  display: inline-block; background: #fdecef; border: 1px solid #f2b8bd;
+  color: var(--red); border-radius: 999px; padding: 1px 8px;
+  font-size: .78rem; font-weight: 700; white-space: nowrap;
+}
 mark { background: #ffe58a; color: var(--text); border-radius: 3px; padding: 0 1px; }
 
 footer { color: var(--muted); font-size: .82rem; margin: 14px 0 30px; text-align: center; }
@@ -107,11 +114,17 @@ footer a { color: var(--accent); text-decoration: none; }
   .tablewrap { border: none; background: transparent; box-shadow: none; overflow-x: visible; }
   table, tbody { display: block; }
   thead { display: none; }
+  td { border-bottom: none; padding: 2px 4px; }
+
+  /* ---- list mode: image rail left, content right, price strip at bottom ---- */
   tbody tr {
     display: grid;
-    grid-template-columns: 96px 1fr;
-    grid-template-rows: auto auto auto;
-    gap: 4px 10px;
+    grid-template-columns: 84px 1fr;
+    grid-template-areas:
+      "img  item"
+      "img  desc"
+      "img  price";
+    gap: 2px 10px;
     background: var(--card);
     border: 1px solid var(--line);
     border-radius: 12px;
@@ -119,54 +132,43 @@ footer a { color: var(--accent); text-decoration: none; }
     margin-bottom: 10px;
     align-items: start;
   }
-  td { border-bottom: none; padding: 2px 4px; }
-  td.imgcell { grid-row: 1 / 4; grid-column: 1; align-self: start; width: 96px; max-width: 96px; }
-  td.imgcell .thumbwrap, td.imgcell .thumbwrap img { width: 96px; height: 96px; }
-  td.imgcell img { width: 96px; height: 96px; }
-  td.item { grid-row: 1; grid-column: 2; font-size: .95rem; white-space: normal; }
-  td.desc { grid-row: 2; grid-column: 2; min-width: 0; font-size: .85rem; color: var(--muted); }
-  td.full, td.disc, td.sale, td.save {
-    grid-row: 3; text-align: center; white-space: nowrap; font-size: .95rem;
-  }
-  td.full { grid-column: 2; }
-  td.disc { grid-column: 3; }
-  td.sale { grid-column: 4; }
-  td.save { grid-column: 5; margin-right: -8px; }
-  /* 4 price columns fit across the right side */
-  tbody tr { grid-template-columns: 96px 1fr 1fr 1fr 1fr; }
-  td.full::before { content: "ราคาเต็ม"; display: block; font-size: .66rem; color: var(--muted); font-weight: 400; }
-  td.disc::before { content: "ลด"; display: block; font-size: .66rem; color: var(--muted); font-weight: 400; }
-  td.sale::before { content: "ราคาลด"; display: block; font-size: .66rem; color: var(--muted); font-weight: 400; }
-  td.save::before { content: "ประหยัด"; display: block; font-size: .66rem; color: var(--muted); font-weight: 400; }
-  td.full { text-decoration: line-through; color: var(--muted); font-weight: 400; font-size: .8rem; align-self: center; }
-  td.disc { align-self: center; font-size: .85rem; }
-  td.sale { align-self: center; }
-  td.save { align-self: center; font-size: .85rem; }
+  td.imgcell { grid-area: img; align-self: start; }
+  td.imgcell .thumbwrap, td.imgcell .thumbwrap img { width: 84px; height: 84px; }
+  td.item { grid-area: item; font-size: .95rem; white-space: normal; }
+  td.desc { grid-area: desc; min-width: 0; font-size: .85rem; color: var(--muted); }
+  /* secondary figures are inferable from sale price — drop them (progressive disclosure) */
+  td.full, td.disc, td.save { display: none; }
 
-  /* ---- grid mode (2 columns, big image on top) ---- */
-  .card-grid tbody {
-    display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+  /* price strip: sale price is the visual anchor */
+  td.sale {
+    grid-area: price;
+    display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 8px;
+    margin-top: 6px; font-size: 1.15rem; font-weight: 800;
   }
+  td.sale::before { content: "฿"; font-weight: 800; color: var(--accent); }
+  td.sale .pill { font-size: .78rem; transform: translateY(-2px); }
+  /* B2F1: sale cell holds promo text, not a number */
+  td.sale.promo-text { font-size: .8rem; font-weight: 600; color: #7a5d00; background: #fff7e0; border: 1px solid #e0c368; border-radius: 6px; padding: 3px 8px; width: fit-content; }
+  td.sale.promo-text::before { content: none; }
+
+  /* ---- grid mode (2 columns, big image on top, full price detail) ---- */
+  .card-grid tbody { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
   .card-grid tbody tr {
     display: flex; flex-direction: column;
-    margin-bottom: 0; padding: 0; overflow: hidden;
+    margin-bottom: 0; padding: 0; overflow: hidden; height: 100%;
   }
-  .card-grid td.imgcell { grid-row: auto; grid-column: auto; width: 100% !important; max-width: 100%; }
-  .card-grid td.imgcell .thumbwrap { width: 100% !important; height: 150px !important; display: block; }
-  .card-grid td.imgcell img { width: 100% !important; height: 150px !important; }
-  .card-grid td.imgcell img { object-fit: contain; background: var(--bg); padding: 6px; }
-  .card-grid td.item { grid-row: auto; grid-column: auto; padding: 8px 10px 0; white-space: normal; }
-  .card-grid td.desc { grid-row: auto; grid-column: auto; padding: 2px 10px; }
-  .card-grid td.full, .card-grid td.disc, .card-grid td.sale, .card-grid td.save {
-    grid-row: auto; grid-column: auto; text-align: left; padding: 1px 10px;
+  .card-grid td.imgcell { width: 100%; max-width: 100%; }
+  .card-grid td.imgcell .thumbwrap { width: 100%; height: 130px; display: block; }
+  .card-grid td.imgcell img { width: 100%; height: 130px; object-fit: contain; background: var(--bg); padding: 6px; }
+  .card-grid td.item { padding: 8px 10px 0; white-space: normal; }
+  .card-grid td.desc { padding: 2px 10px; flex: 1; }
+  /* un-hide list-mode hidden cells, restack vertically */
+  .card-grid td.full, .card-grid td.disc, .card-grid td.sale {
+    display: flex; flex-wrap: wrap; align-items: baseline; gap: 3px 6px; padding: 1px 10px;
   }
-  .card-grid td.full::before, .card-grid td.disc::before,
-  .card-grid td.sale::before, .card-grid td.save::before {
-    content: ""; display: none;
-  }
-  .card-grid td.full { font-size: .8rem; align-self: auto; }
-  .card-grid td.sale { font-weight: 700; }
-  .card-grid td.save { margin-bottom: 8px; }
+  .card-grid td.full { font-size: .8rem; text-decoration: line-through; color: var(--muted); font-weight: 400; }
+  .card-grid td.full::before { content: "฿"; color: var(--muted); }
+  .card-grid td.sale { font-weight: 800; font-size: 1.05rem; margin-top: auto; margin-bottom: 8px; }
 }
 
 /* toggle */
