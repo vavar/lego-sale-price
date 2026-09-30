@@ -168,6 +168,9 @@ footer a { color: var(--accent); text-decoration: none; }
   }
   .card-grid td.full { font-size: .8rem; text-decoration: line-through; color: var(--muted); font-weight: 400; }
   .card-grid td.full::before { content: "฿"; color: var(--muted); }
+  /* promo rows (B1G1/B2F1): the listed price IS what you pay — never strike it */
+  .card-grid tbody tr.promo td.full { text-decoration: none; color: var(--text); font-weight: 600; font-size: .9rem; }
+  .card-grid tbody tr.promo td.full::before { color: var(--text); }
   .card-grid td.sale { font-weight: 800; font-size: 1.05rem; margin-top: auto; margin-bottom: 8px; }
 }
 
